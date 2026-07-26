@@ -4,3 +4,6 @@ local.properties
 .idea/
 *.apk
 *.keystore
+
+# приватные заметки об инфраструктуре — не для публичного репо
+DEV-SETUP.md
