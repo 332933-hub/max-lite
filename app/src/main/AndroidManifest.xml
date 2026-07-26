@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Единственное обязательное разрешение -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Только для Android 8–9: сохранение скачанных файлов в Downloads.
+         На Android 10+ это разрешение не существует и не запрашивается. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <!-- Normal-разрешение (выдаётся автоматически, доступа к данным не даёт).
+         Нужно, чтобы MIUI не убивала процесс, пока открыт выбор файла, —
+         иначе отправка файлов молча теряется. См. KeepAliveService. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <service
+            android:name=".KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="@string/settings"
+            android:theme="@android:style/Theme.Material" />
+    </application>
+</manifest>
