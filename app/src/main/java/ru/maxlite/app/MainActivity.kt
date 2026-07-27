@@ -36,6 +36,7 @@ class MainActivity : Activity() {
     @Volatile private var blockingEnabled = true
     @Volatile private var extraDomains: List<String> = emptyList()
     private var appliedDesktopMode = false
+    private var fitWidth = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +58,7 @@ class MainActivity : Activity() {
     private fun refreshPrefsCache() {
         blockingEnabled = prefs.blockTelemetry
         extraDomains = prefs.extraDomainsList()
+        fitWidth = prefs.fitWidth
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -106,6 +108,10 @@ class MainActivity : Activity() {
             override fun shouldInterceptRequest(
                 view: WebView, request: WebResourceRequest
             ): WebResourceResponse? = maybeBlock(request)
+
+            override fun onPageFinished(view: WebView, url: String) {
+                if (fitWidth) view.evaluateJavascript(WidthFix.SCRIPT, null)
+            }
 
             override fun onRenderProcessGone(
                 view: WebView, detail: android.webkit.RenderProcessGoneDetail
@@ -229,13 +235,11 @@ class MainActivity : Activity() {
 
     private fun applyUserAgent() {
         appliedDesktopMode = prefs.desktopMode
-        if (appliedDesktopMode) {
-            webView.settings.userAgentString = DESKTOP_UA
-            webView.settings.useWideViewPort = true
-            webView.settings.loadWithOverviewMode = true
-        } else {
-            webView.settings.userAgentString = null // системный по умолчанию
-        }
+        webView.settings.userAgentString = if (appliedDesktopMode) DESKTOP_UA else null
+        // В мобильном режиме вьюпорт равен ширине экрана — иначе страница
+        // раскладывается на «десктопную» ширину и уезжает вбок.
+        webView.settings.useWideViewPort = appliedDesktopMode
+        webView.settings.loadWithOverviewMode = appliedDesktopMode
     }
 
     private fun openExternal(uri: Uri) {
@@ -269,10 +273,17 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        val wasFitWidth = fitWidth
         refreshPrefsCache()
-        if (prefs.desktopMode != appliedDesktopMode) {
-            applyUserAgent()
-            webView.reload()
+        when {
+            prefs.desktopMode != appliedDesktopMode -> {
+                applyUserAgent()
+                webView.reload()
+            }
+            // Стиль уже в DOM — убрать его можно только перезагрузкой,
+            // а включить достаточно на месте, не теряя открытый чат.
+            fitWidth && !wasFitWidth -> webView.evaluateJavascript(WidthFix.SCRIPT, null)
+            !fitWidth && wasFitWidth -> webView.reload()
         }
     }
 

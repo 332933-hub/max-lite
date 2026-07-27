@@ -57,6 +57,15 @@ class SettingsActivity : Activity() {
 
         root.addView(header("Вид"))
         root.addView(Switch(this).apply {
+            text = "Вписывать страницу в ширину экрана"
+            isChecked = prefs.fitWidth
+            setOnCheckedChangeListener { _, v -> prefs.fitWidth = v }
+        })
+        root.addView(caption(
+            "Чтобы длинные ссылки в сообщениях не растягивали чат " +
+                "и кнопка отправки не уезжала за край."
+        ))
+        root.addView(Switch(this).apply {
             text = "Версия для ПК (User-Agent)"
             isChecked = prefs.desktopMode
             setOnCheckedChangeListener { _, v -> prefs.desktopMode = v }

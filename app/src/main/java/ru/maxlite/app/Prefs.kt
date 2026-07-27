@@ -15,6 +15,11 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("desktop_mode", false)
         set(v) = sp.edit().putBoolean("desktop_mode", v).apply()
 
+    /** Не давать странице растягиваться шире экрана (по умолчанию — да). */
+    var fitWidth: Boolean
+        get() = sp.getBoolean("fit_width", true)
+        set(v) = sp.edit().putBoolean("fit_width", v).apply()
+
     /** Дополнительные блокируемые домены, по одному на строку. */
     var extraDomains: String
         get() = sp.getString("extra_domains", "") ?: ""
