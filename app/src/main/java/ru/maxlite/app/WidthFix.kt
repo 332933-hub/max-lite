@@ -15,14 +15,17 @@ package ru.maxlite.app
  * круглых элементов (аватар, кнопка отправки) — те сжимаются в овал. Ширину
  * распирает текст, его и лечим.
  *
- * Правило по `*` задано без !important и с нулевой специфичностью: любое
- * собственное правило сайта его перебьёт, так что вёрстка MAX не ломается.
+ * overflow-wrap — с !important: на части устройств (новый WebView/HyperOS)
+ * у MAX находится собственное правило той же специфичности, которое без
+ * !important побеждает по порядку объявления и оставляет длинную строку
+ * неразрывной. !important тут безопасен — свойство влияет только на перенос
+ * текста, круглые элементы (не текстовые) не задевает, в отличие от min-width.
  */
 object WidthFix {
 
     private const val CSS = """
 html, body { max-width: 100% !important; overflow-x: hidden !important; }
-* { overflow-wrap: anywhere; }
+* { overflow-wrap: anywhere !important; }
 img, video, canvas, iframe, table, pre { max-width: 100% !important; }
 """
 
