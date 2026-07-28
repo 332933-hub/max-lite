@@ -32,16 +32,34 @@ jobs:
           -PversionName=${{ steps.ver.outputs.name }}
           -PversionCode=${{ github.run_number }}
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk maxlite-${{ github.ref_name }}.apk
-
-      # На каждый пуш — APK в артефактах Actions
+      # На каждый пуш — debug-APK в артефактах Actions, просто для проверки сборки.
       - uses: actions/upload-artifact@v4
         with:
-          name: maxlite-apk
-          path: maxlite-*.apk
+          name: maxlite-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
 
-      # На тег v* — готовый релиз с APK
+      # На тег v* — релизная сборка, подписанная приватным ключом из Secrets
+      # (ключ никогда не лежит в репозитории).
+      - name: Decode release keystore
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      - name: Build release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/release.keystore
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: >
+          ./gradlew assembleRelease --no-daemon
+          -PversionName=${{ steps.ver.outputs.name }}
+          -PversionCode=${{ github.run_number }}
+
+      - name: Rename release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: cp app/build/outputs/apk/release/app-release.apk maxlite-${{ github.ref_name }}.apk
+
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2

@@ -18,20 +18,22 @@ android {
     }
 
     signingConfigs {
-        getByName("debug") {
-            // Закреплённый ключ, а не рандомный ~/.android/debug.keystore
-            // раннера: иначе у каждой CI-сборки новая подпись, и Android
-            // отказывается ставить новый APK поверх старого (тихо, без
-            // внятной ошибки) — апдейт молча не происходит.
-            storeFile = file("debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+        create("release") {
+            // Ключ в репозиторий не кладём: CI достаёт его из GitHub Secrets
+            // во временный файл и передаёт путь/пароли через переменные
+            // окружения. Без них release-сборка технически возможна собрать,
+            // но подписать нечем — так и задумано, релизный ключ не должен
+            // валяться в системе просто так.
+            storeFile = file(System.getenv("RELEASE_KEYSTORE_PATH") ?: "release.keystore")
+            storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
         }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
