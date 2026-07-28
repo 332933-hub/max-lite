@@ -4,6 +4,8 @@ local.properties
 .idea/
 *.apk
 *.keystore
+# Общий debug-ключ для стабильной подписи CI-сборок — не секрет, нужен в репо
+!app/debug.keystore
 
 # приватные заметки об инфраструктуре — не для публичного репо
 DEV-SETUP.md

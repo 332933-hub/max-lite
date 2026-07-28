@@ -11,8 +11,23 @@ android {
         applicationId = "ru.maxlite.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        // CI передаёт реальные значения флагами -PversionName/-PversionCode
+        // (из тега релиза), локальная сборка — просто "dev".
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = project.findProperty("versionName") as String? ?: "dev"
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            // Закреплённый ключ, а не рандомный ~/.android/debug.keystore
+            // раннера: иначе у каждой CI-сборки новая подпись, и Android
+            // отказывается ставить новый APK поверх старого (тихо, без
+            // внятной ошибки) — апдейт молча не происходит.
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

@@ -20,8 +20,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Extract version
+        id: ver
+        run: |
+          name="${GITHUB_REF_NAME#v}"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
       - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: >
+          ./gradlew assembleDebug --no-daemon
+          -PversionName=${{ steps.ver.outputs.name }}
+          -PversionCode=${{ github.run_number }}
 
       - name: Rename APK
         run: cp app/build/outputs/apk/debug/app-debug.apk maxlite-${{ github.ref_name }}.apk
